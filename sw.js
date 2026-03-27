@@ -1,6 +1,6 @@
-// ── AOF Finder v6 — Service Worker BUILD 038 ──
+// ── AOF Finder v6 — Service Worker BUILD 039 ──
 // Change version number = forces ALL devices to reload fresh!
-const CACHE = 'aof-v6-cache-v38';
+const CACHE = 'aof-v6-cache-v39';
 
 const ASSETS = [
   './',
