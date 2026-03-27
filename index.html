@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-<title>AOF Finder v6 - SUSINFO [BUILD 042]</title>
+<title>AOF Finder v6 - SUSINFO [BUILD 043]</title>
 <!-- Prevent browser password manager popup -->
 <meta name="format-detection" content="telephone=no">
 <!-- Hidden dummy inputs trick browsers into not prompting password save -->
@@ -824,51 +824,100 @@ textarea::placeholder { color: var(--t3); }
 .smart-suggestion { background:rgba(255,109,0,.06); border:1px solid rgba(255,109,0,.32); border-left:3px solid var(--go); padding:10px 12px; margin-top:8px; text-align:center; }
 
 /* ============================================================
-   SERIAL NUMBER BANNER
+   SERIAL NUMBER FLOATING POPUP
 ============================================================ */
+@keyframes serialPop {
+  0%  { opacity:0; transform:translate(-50%,-50%) scale(.8); }
+  70% { transform:translate(-50%,-50%) scale(1.04); }
+  100%{ opacity:1; transform:translate(-50%,-50%) scale(1); }
+}
+/* Dark overlay */
+#serialOverlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.82);
+  z-index: 999990;
+  -webkit-tap-highlight-color: transparent;
+}
+#serialOverlay.show { display: block; }
+/* Popup box — fixed center of screen */
 #serialBanner {
   display: none;
-  background: rgba(0,230,118,0.07);
-  border: 1px solid rgba(0,230,118,0.45);
-  border-left: 4px solid var(--gn);
-  padding: 12px 16px;
-  margin: 8px 0 4px;
-  animation: slideIn .25s ease;
-  position: relative;
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  width: min(88vw, 340px);
+  background: #020f17;
+  border: 2px solid rgba(0,230,118,0.6);
+  border-top: 4px solid var(--gn);
+  box-shadow: 0 0 60px rgba(0,230,118,0.2), 0 0 0 1px rgba(0,230,118,0.08);
+  padding: 28px 24px 22px;
+  text-align: center;
+  z-index: 999999;
+  border-radius: 4px;
 }
-#serialBanner.show { display: block; }
+#serialBanner.show {
+  display: block;
+  animation: serialPop .3s cubic-bezier(.34,1.56,.64,1) forwards;
+}
 .serial-label {
   font-family: 'Share Tech Mono', monospace;
   font-size: 10px; color: var(--t2);
-  letter-spacing: 3px; text-transform: uppercase;
-  margin-bottom: 4px;
+  letter-spacing: 4px; text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.serial-found-tag {
+  font-family: 'Orbitron', monospace;
+  font-size: 11px; font-weight: 700;
+  color: var(--gn); letter-spacing: 3px;
+  background: rgba(0,230,118,0.08);
+  border: 1px solid rgba(0,230,118,0.3);
+  padding: 4px 14px; display: inline-block;
+  margin-bottom: 14px;
+}
+.serial-account {
+  font-family: 'Orbitron', monospace;
+  font-size: 15px; font-weight: 700;
+  color: var(--t1); letter-spacing: 4px;
+  margin-bottom: 16px;
+}
+.serial-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0,230,118,0.35), transparent);
+  margin: 0 0 16px;
 }
 .serial-number {
   font-family: 'Orbitron', monospace;
-  font-size: 32px; font-weight: 900;
-  color: var(--gn);
-  letter-spacing: 4px;
-  text-shadow: 0 0 18px rgba(0,230,118,.6);
+  font-size: 52px; font-weight: 900;
+  color: var(--gn); letter-spacing: 4px;
+  text-shadow: 0 0 30px rgba(0,230,118,.7), 0 0 60px rgba(0,230,118,.3);
+  line-height: 1;
+}
+.serial-hash {
+  font-size: 28px; opacity: 0.6;
+  vertical-align: top; margin-top: 6px;
+  display: inline-block;
 }
 .serial-sub {
   font-family: 'Share Tech Mono', monospace;
-  font-size: 10px; color: var(--t1);
-  letter-spacing: 2px; margin-top: 3px;
+  font-size: 10px; color: var(--t2);
+  letter-spacing: 2px; margin-top: 8px;
 }
 .serial-ok-btn {
   display: block; width: 100%;
-  margin-top: 10px; padding: 12px;
-  background: rgba(0,230,118,0.12);
-  border: 2px solid rgba(0,230,118,0.55);
+  margin-top: 22px; padding: 15px;
+  background: linear-gradient(135deg, rgba(0,230,118,0.18), rgba(0,230,118,0.08));
+  border: 2px solid rgba(0,230,118,0.6);
   color: var(--gn);
   font-family: 'Orbitron', monospace;
-  font-size: 13px; font-weight: 900;
-  letter-spacing: 3px; cursor: pointer;
+  font-size: 14px; font-weight: 900;
+  letter-spacing: 4px; cursor: pointer;
   text-align: center; text-transform: uppercase;
   transition: all .15s;
   -webkit-tap-highlight-color: transparent;
+  border-radius: 2px;
 }
-.serial-ok-btn:active { transform: scale(0.97); opacity: .85; }
+.serial-ok-btn:active { transform: scale(0.97); opacity: .8; }
 
 /* ============================================================
    FOOTER
@@ -953,7 +1002,7 @@ input[type="text"], input[type="password"] {
       <button class="pin-key del" onclick="pinDel()">⌫</button>
       <button class="pin-key zero" onclick="pinKey('0')">0</button>
     </div>
-    <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:#546e7a;text-align:center;margin-top:8px;letter-spacing:3px;padding-bottom:20px;">SYS BUILD 042</div>
+    <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:#546e7a;text-align:center;margin-top:8px;letter-spacing:3px;padding-bottom:20px;">SYS BUILD 043</div>
   </div>
 </div>
 
@@ -962,7 +1011,7 @@ input[type="text"], input[type="password"] {
   <div class="header" id="mainHeader" onclick="headerTap()">
     <h1>🔍 AOF Finder v6</h1>
     <p>SUSINFO — World Class Edition</p>
-    <p style="font-size:10px;color:#2196F3;font-weight:800;margin-top:2px;">BUILD 042 • 27-Mar-2026 • Serial No. on Found + Smart Learning</p>
+    <p style="font-size:10px;color:#2196F3;font-weight:800;margin-top:2px;">BUILD 043 • 27-Mar-2026 • Serial No. Floating Popup</p>
     <div class="tap-hint" id="tapHint"></div>
   </div>
   <div class="sync-banner" id="syncBanner"></div>
@@ -1000,10 +1049,14 @@ input[type="text"], input[type="password"] {
     <button class="btn btn-report" onclick="openReport()">📊 DAILY REPORT</button>
     <button class="btn btn-notfound" onclick="openNotFound()">📋 NOT FOUND LIST</button>
     <button class="btn btn-settings" onclick="showSettings()">⚙️ SETTINGS</button>
-    <!-- SERIAL NUMBER BANNER — shows line position on FOUND -->
+    <!-- SERIAL NUMBER FLOATING POPUP -->
+    <div id="serialOverlay" onclick="serialOk()"></div>
     <div id="serialBanner">
       <div class="serial-label">📋 Serial No. in List</div>
-      <div class="serial-number" id="serialNumber">#0</div>
+      <div class="serial-found-tag">✅ FOUND</div>
+      <div class="serial-account" id="serialAccount"></div>
+      <div class="serial-divider"></div>
+      <div class="serial-number"><span class="serial-hash">#</span><span id="serialNumber">0</span></div>
       <div class="serial-sub" id="serialSub">LINE POSITION • SANCTION ORDER</div>
       <button class="serial-ok-btn" onclick="serialOk()">✅ OK — NEXT SCAN</button>
     </div>
@@ -1889,23 +1942,27 @@ function checkAccount(){
   speakResult(found);vibrateResult(found);playSound(found);
   addHistory(q,'✋ Manual',found);addReport('manual',found);
   if(found){
-    // Show serial number banner (line position = index+1, order preserved)
+    // Show floating popup with serial number
     var linePos = accountsArray.indexOf(q) + 1;
-    var serialBanner = document.getElementById('serialBanner');
+    var overlay  = document.getElementById('serialOverlay');
+    var banner   = document.getElementById('serialBanner');
     var serialNum = document.getElementById('serialNumber');
     var serialSub = document.getElementById('serialSub');
-    if(serialBanner && serialNum){
-      serialNum.textContent = '#' + linePos.toLocaleString();
+    var serialAcc = document.getElementById('serialAccount');
+    if(banner && serialNum){
+      serialNum.textContent  = linePos.toLocaleString();
       if(serialSub) serialSub.textContent = 'LINE ' + linePos.toLocaleString() + ' OF ' + accountsArray.length.toLocaleString() + ' • SANCTION ORDER';
-      serialBanner.classList.add('show');
+      if(serialAcc) serialAcc.textContent = q;
+      if(overlay) overlay.classList.add('show');
+      banner.classList.add('show');
     }
-    // Don't clear input yet — OK button will do it
+    // Don't clear input yet — OK button clears it
   } else {
-    // Hide serial banner on not found
-    var serialBanner = document.getElementById('serialBanner');
-    if(serialBanner) serialBanner.classList.remove('show');
+    var overlay = document.getElementById('serialOverlay');
+    var banner  = document.getElementById('serialBanner');
+    if(overlay) overlay.classList.remove('show');
+    if(banner)  banner.classList.remove('show');
     addNotFound(q,'✋ Manual');
-    // Show smart suggestion
     setTimeout(function(){
       var resultEl=document.getElementById('result');
       if(resultEl) showSmartSuggestion(q, resultEl);
@@ -1913,13 +1970,14 @@ function checkAccount(){
     input.value='';
   }
 }
-// Serial OK button — clear input for next scan
+// Serial OK — close popup, clear input, ready for next scan
 function serialOk(){
-  var serialBanner=document.getElementById('serialBanner');
-  if(serialBanner) serialBanner.classList.remove('show');
-  var input=document.getElementById('accountInput');
-  if(input){ input.value=''; }
-  // Reset result box to ready
+  var overlay = document.getElementById('serialOverlay');
+  var banner  = document.getElementById('serialBanner');
+  if(overlay) overlay.classList.remove('show');
+  if(banner)  banner.classList.remove('show');
+  var input = document.getElementById('accountInput');
+  if(input) input.value='';
   setResult('Ready...','','');
 }
 function aiSearch(){
