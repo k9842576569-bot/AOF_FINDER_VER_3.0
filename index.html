@@ -1028,10 +1028,13 @@ input[type="text"], input[type="password"] {
       <label for="manualLoad">📝 MANUAL</label>
       <input type="radio" id="bulkLoad" name="loadType" value="bulk" onchange="toggleLoadMode()">
       <label for="bulkLoad">📁 BULK TXT</label>
+      <input type="radio" id="sheetLoad" name="loadType" value="sheet" onchange="toggleLoadMode()">
+      <label for="sheetLoad">📊 FROM SHEET</label>
     </div>
     <textarea id="accountsList" placeholder="MANUAL: Type 11-digit numbers&#10;BULK: Paste AOFMASTER.txt content"></textarea>
     <input type="file" id="bulkFile" class="file-input" accept=".txt" onchange="handleBulkFile(event)">
     <label for="bulkFile" class="btn btn-bulk" id="bulkBtn">📁 UPLOAD TXT FILE</label>
+    <button class="btn btn-bulk" id="sheetImportBtn" style="display:none;" onclick="importFromAOFDATA()">📊 IMPORT FROM AOFDATA SHEET</button>
     <button class="btn btn-load" onclick="loadAccounts()">🚀 LOAD ACCOUNTS</button>
   </div>
   <button onclick="sysConfigClick()" style="width:100%;margin-top:4px;padding:10px;border:1px dashed rgba(0,229,255,0.2);border-radius:4px;background:transparent;color:#546e7a;font-family:'Share Tech Mono',monospace;font-size:10px;font-weight:700;cursor:pointer;display:none;letter-spacing:2px;" id="adminConfigBtn">⚙️ SYSTEM CONFIG</button>
@@ -1867,9 +1870,10 @@ function saveSheetUrl(){
 // ============================================================
 function toggleLoadMode(){
   currentMode=document.querySelector('input[name="loadType"]:checked').value;
-  const ta=document.getElementById('accountsList'),bb=document.getElementById('bulkBtn');
-  if(currentMode==='manual'){ta.placeholder='MANUAL: Type 11-digit numbers\n00000000000';bb.style.display='none';}
-  else{ta.placeholder='BULK: Paste AOFMASTER.txt content\nP000004Q000000R → 00000000000';bb.style.display='block';}
+  const ta=document.getElementById('accountsList'),bb=document.getElementById('bulkBtn'),sb=document.getElementById('sheetImportBtn');
+  if(currentMode==='manual'){ta.placeholder='MANUAL: Type 11-digit numbers\n00000000000';bb.style.display='none';sb.style.display='none';ta.style.display='block';}
+  else if(currentMode==='bulk'){ta.placeholder='BULK: Paste AOFMASTER.txt content\nP000004Q000000R → 00000000000';bb.style.display='block';sb.style.display='none';ta.style.display='block';}
+  else{ta.placeholder='Click below to import from AOFDATA sheet';bb.style.display='none';sb.style.display='block';ta.style.display='block';}
 }
 function extract11Digits(text){
   // Enhanced: apply OCR letter corrections, extract unique 11-digit numbers
@@ -1912,6 +1916,23 @@ function handleBulkFile(event){
       document.getElementById('accountsList').placeholder='✅ '+numbers.length+' unique accounts extracted (OCR-corrected)';
     }else alert('❌ No 11+ digit sequences found!');
   };reader.readAsText(file);
+}
+function importFromAOFDATA(){
+  const url=getSheetUrl();
+  if(!url){alert('⚠️ Set Sheet URL in Settings first!');return;}
+  showLoading('Importing from AOFDATA sheet...');
+  fetch(url+'?action=importFromSheet&key=F4XN%25iRfEXLhMrCiqIQeUT5AbW5t55Jm',{redirect:'follow'})
+    .then(r=>r.json())
+    .then(data=>{
+      hideLoading();
+      if(data.error){alert('❌ '+data.error);return;}
+      if(!data.numbers||data.numbers.length===0){alert('📋 No data found in AOFDATA sheet!');return;}
+      const numbers=extract11Digits(data.numbers.join('\n'));
+      if(numbers.length===0){alert('❌ No valid 11-digit numbers found in AOFDATA!');return;}
+      document.getElementById('accountsList').value=numbers.join('\n');
+      document.getElementById('accountsList').placeholder='✅ '+numbers.length+' unique accounts imported from AOFDATA';
+    })
+    .catch(err=>{hideLoading();alert('❌ Import failed: '+err.message);});
 }
 function loadAccounts(){
   const rawText=document.getElementById('accountsList').value.trim();
